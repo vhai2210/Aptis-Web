@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#002B5C">
+  <link rel="icon" href="assets/logo.png">
+  <title>OwlStudy - Phòng Luyện Trắc Nghiệm</title>
+  <style>
+    :root {
+      --blue: #005BAC;
+      --blue-dark: #003B7A;
+      --blue-deep: #002B5C;
+      --yellow: #F5C400;
+      --white: #FFFFFF;
+      --paper: #F4F7FB;
+      --surface: #FFFFFF;
+      --text: #132237;
+      --muted: #5D6E84;
+      --line: rgba(0, 59, 122, 0.12);
+      --success: #168A55;
+      --success-bg: #E5F7EF;
+      --danger: #B42318;
+      --danger-bg: #FDE8E6;
+      --shadow: 0 10px 30px rgba(0, 43, 92, 0.06);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+    }
+
+    body {
+      background: #F6F8FB;
+      color: var(--text);
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    }
+
+    input[type="range"] {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -ms-user-select: text !important;
+    }
+
+    img {
+      -webkit-user-drag: none;
+    }
+
+    /* Header Bar */
+    .site-header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--blue-deep);
+      box-shadow: 0 14px 34px rgba(0, 43, 92, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .site-header::before {
+      display: none;
+      height: 4px;
+      background: linear-gradient(90deg, var(--yellow), var(--blue), var(--blue-deep));
+      content: "";
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(0, 43, 92, 0.7);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--blue-deep);
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--blue-dark);
+      transform: translateY(-1px);
+    }
+
+    .nav-pill {
+      background: var(--blue);
+      color: var(--white) !important;
+      padding: 8px 16px;
+      border-radius: 999px;
+      box-shadow: 0 6px 15px rgba(0, 91, 172, 0.15);
+    }
+
+    .nav-pill:hover {
+      background: var(--blue-dark);
+    }
+
+    /* Page container */
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Empty state */
+    .empty-message {
+      background: var(--white);
+      border: 1px dashed rgba(0, 91, 172, 0.2);
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    /* Modes Screen */
+    .mode-screen {
+      max-width: 900px;
+      margin: 40px auto;
+      position: relative;
+      overflow: hidden;
+      background: #FFFFFF;
+      padding: 40px;
+      border-radius: 28px;
+      box-shadow: 0 18px 44px rgba(0, 43, 92, 0.08);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .mode-screen::before {
+      display: none;
+    }
+
+    .mode-screen > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .mode-screen h1 {
+      font-size: clamp(34px, 4vw, 54px);
+      color: var(--blue-deep);
+      margin-bottom: 12px;
+      font-weight: 800;
+    }
+
+    .mode-screen p {
+      display: none;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 30px;
+      font-size: 15px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .mode-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      padding: 28px;
+      border-radius: 22px;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 46px rgba(0, 18, 44, 0.22);
+    }
+
+    .mode-card h2 {
+      color: var(--blue-deep);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .mode-card p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 0;
+      line-height: 1.5;
+    }
+
+    .range-box {
+      margin: 10px 0;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #DBE8F4;
+      outline: none;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    .range-number {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--blue-deep);
+      margin-top: 8px;
+    }
+
+    /* Buttons */
+    button {
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      background: var(--blue);
+      color: var(--white);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:hover {
+      background: var(--blue-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-light {
+      background: var(--white);
+      color: var(--blue-deep);
+      border: 1px solid var(--line);
+    }
+
+    .btn-light:hover {
+      background: var(--paper);
+      color: var(--blue-dark);
+    }
+
+    .btn-yellow {
+      background: var(--yellow);
+      color: var(--blue-deep);
+    }
+
+    .btn-yellow:hover {
+      background: #e0b400;
+    }
+
+    /* Quiz Workspace Layout */
+    .practice-layout {
+      display: none;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    .main-card, .side-card {
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 26px;
+      box-shadow: 0 30px 76px rgba(0, 18, 44, 0.18);
+      padding: 30px;
+      border: 1px solid var(--line);
+    }
+
+    .main-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .main-card::before {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 6px;
+      background: linear-gradient(90deg, var(--yellow), #8ED0FF, var(--blue));
+      content: "";
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .top-row h1 {
+      font-size: 26px;
+      color: var(--blue-deep);
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .top-row p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .fullscreen-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-line {
+      height: 10px;
+      background: #DBE8F4;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--yellow), #8ED0FF);
+      transition: width 0.3s ease;
+    }
+
+    .question-box {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 24px;
+      background: var(--surface-soft);
+      margin-bottom: 24px;
+    }
+
+    .question-number {
+      color: var(--blue);
+      font-weight: 800;
+      margin-bottom: 12px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .question-text {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 24px;
+      color: var(--blue-deep);
+    }
+
+    /* Options choices list */
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      background: var(--white);
+      font-size: 15px;
+      transition: all 0.2s ease;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .option:last-child {
+      margin-bottom: 0;
+    }
+
+    .option:hover {
+      border-color: var(--blue);
+      background: var(--surface-soft);
+      transform: translateY(-1px);
+    }
+
+    .letter {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #EEF5FC;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .option.correct {
+      background: var(--success-bg);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .option.correct .letter {
+      background: var(--success);
+      color: var(--white);
+    }
+
+    .option.wrong {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .option.wrong .letter {
+      background: var(--danger);
+      color: var(--white);
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+      gap: 12px;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* Sidebar panel layout */
+    .side-card {
+      height: fit-content;
+      position: sticky;
+      top: 94px;
+    }
+
+    .side-card h2 {
+      margin-bottom: 14px;
+      font-size: 16px;
+      color: var(--blue-deep);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat {
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .stat-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .stat-row b {
+      color: var(--blue-deep);
+    }
+
+    /* Question buttons selector matrix */
+    .question-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .fullscreen-toggle {
+      display: inline-grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #EEF5FC;
+      color: var(--blue-deep);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .fullscreen-toggle:hover,
+    .fullscreen-toggle:focus-visible {
+      background: var(--blue);
+      color: var(--white);
+      outline: none;
+    }
+
+    .fullscreen-toggle svg {
+      width: 19px;
+      height: 19px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2.2;
+    }
+
+    .fullscreen-toggle .icon-collapse,
+    body.is-fullscreen .fullscreen-toggle .icon-expand {
+      display: none;
+    }
+
+    body.is-fullscreen .fullscreen-toggle .icon-collapse {
+      display: block;
+    }
+
+    .practice-layout {
+      grid-template-columns: minmax(0, 1fr) 300px;
+      align-items: start;
+    }
+
+    .main-card {
+      display: flex;
+      min-height: calc(100vh - 170px);
+      flex-direction: column;
+    }
+
+    .question-box {
+      margin-bottom: 30px;
+      padding: 28px;
+    }
+
+    .question-text {
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    .option {
+      min-height: 64px;
+      margin-bottom: 14px;
+      padding: 16px 18px;
+      line-height: 1.6;
+    }
+
+    .nav-row {
+      margin-top: auto;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+      align-items: center;
+    }
+
+    .side-card {
+      position: sticky;
+      top: 92px;
+      display: flex;
+      max-height: calc(100vh - 116px);
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .side-card .stat {
+      flex: 0 0 auto;
+      margin-bottom: 18px;
+    }
+
+    .side-card > h2 {
+      flex: 0 0 auto;
+    }
+
+    .side-card .question-grid {
+      max-height: none;
+      overflow-y: auto;
+      padding: 2px 4px 6px 2px;
+    }
+
+    .q-btn {
+      height: 40px;
+      border-radius: 10px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .q-btn:hover {
+      border-color: var(--blue);
+      background: var(--surface-soft);
+    }
+
+    .q-btn.current {
+      outline: 3px solid rgba(0, 91, 172, 0.25);
+      border-color: var(--blue);
+    }
+
+    .q-btn.done-correct {
+      background: var(--success-bg);
+      border-color: rgba(22, 138, 85, 0.3);
+      color: var(--success);
+    }
+
+    .q-btn.done-wrong {
+      background: var(--danger-bg);
+      border-color: rgba(180, 35, 24, 0.3);
+      color: var(--danger);
+    }
+
+    /* Results layout */
+    .result-box {
+      display: none;
+      margin-top: 24px;
+      background: #FFFBE6;
+      border: 1px solid #FDE68A;
+      padding: 24px;
+      border-radius: var(--radius);
+      color: #78350F;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .result-box h3 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #92400E;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .result-item {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .result-value {
+      display: block;
+      font-size: 24px;
+      font-weight: 800;
+      color: #92400E;
+    }
+
+    .result-label {
+      font-size: 11px;
+      color: #B45309;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .result-note {
+      font-size: 13px;
+      line-height: 1.5;
+      font-weight: 600;
+      color: #B45309;
+    }
+
+    /* Footer styling */
+    .site-footer {
+      border-top: 4px solid var(--yellow);
+      background: var(--blue-deep);
+      color: var(--white);
+      margin-top: 50px;
+    }
+
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-name {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .footer-subtitle {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 2px;
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    @media (max-width: 950px) {
+      .practice-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side-card {
+        position: static;
+        max-height: none;
+      }
+
+      .nav-row,
+      .nav-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .nav-row button,
+      .nav-group button {
+        width: 100%;
+      }
+    }
+
+    .question-grid,
+    .side-card .question-grid {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding-right: 0;
+      scrollbar-gutter: stable;
+      touch-action: pan-y;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="student.html" aria-label="OwlStudy">
+        <img class="brand-logo" src="assets/logo.png" alt="OwlStudy">
+        <span class="brand-text">
+          <span class="brand-name">OwlStudy</span>
+          <span class="brand-subtitle">Tài liệu cho sinh viên HaUI</span>
+        </span>
+      </a>
+      <nav class="nav-links">
+        <a href="student.html">Trang chủ</a>
+        <a href="materials.html">Tài liệu</a>
+        <a href="practice.html">Phòng luyện</a>
+        <a class="nav-pill" href="student.html">Về trang học sinh</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <div class="page">
+
+    <!-- Empty State -->
+    <div class="empty-message" id="emptyMessage">
+      Hiện chưa có câu hỏi. Giáo viên cần thêm câu hỏi trước khi học sinh luyện tập.
+    </div>
+
+    <!-- Mode Selector Panel -->
+    <div class="mode-screen" id="modeScreen">
+      <h1>Phòng luyện trắc nghiệm</h1>
+      <p>Chọn số câu và chế độ làm bài. Câu hỏi được xử lý trên trình duyệt, chỉ lưu kết quả khi nộp bài.</p>
+
+      <div class="mode-grid" id="modeScreenGrid">
+        <div class="mode-card">
+          <div>
+            <h2 id="fullModeTitle">Làm toàn bộ câu hỏi</h2>
+            <p style="margin-top: 8px;">Làm toàn bộ câu hỏi hiện có trong ngân hàng đề để bao quát kiến thức môn học.</p>
+          </div>
+          <button id="fullModeBtnText" onclick="startFullMode()">Bắt đầu luyện tập</button>
+        </div>
+
+        <div class="mode-card">
+          <div>
+            <h2>Luyện tùy ý</h2>
+            <p style="margin-top: 8px;">Chọn số lượng câu hỏi muốn thử sức. Hệ thống sẽ ưu tiên chọn các câu bạn từng trả lời sai.</p>
+            <div class="range-box">
+              <input type="range" min="1" max="200" value="20" id="customCount" oninput="updateRangeNumber()">
+              <div class="range-number"><span id="rangeNumber">20</span> câu</div>
+            </div>
+          </div>
+          <button class="btn-yellow" onclick="startCustomMode()">Bắt đầu luyện</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Layout Panel -->
+    <div class="practice-layout" id="practiceLayout">
+      <div class="main-card">
+        <div class="top-row">
+          <div>
+            <h1 id="roomTitle">Phòng luyện</h1>
+            <p id="roomDesc">Chọn đáp án sẽ biết đúng sai ngay.</p>
+          </div>
+          <div class="fullscreen-wrapper">
+            <button class="fullscreen-toggle" id="btnFullscreen" onclick="toggleFullscreen()" title="Mở toàn màn hình" aria-label="Mở toàn màn hình">
+              <svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 4H4v4"></path><path d="M16 4h4v4"></path><path d="M20 16v4h-4"></path><path d="M4 16v4h4"></path>
+                <path d="M4 4l6 6"></path><path d="M20 4l-6 6"></path><path d="M20 20l-6-6"></path><path d="M4 20l6-6"></path>
+              </svg>
+              <svg class="icon-collapse" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 4v6H4"></path><path d="M14 4v6h6"></path><path d="M14 20v-6h6"></path><path d="M10 20v-6H4"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="progress-line">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="question-box">
+          <div class="question-number" id="questionNumber">Câu 1</div>
+          <div class="question-text" id="questionText"></div>
+          <div id="optionsBox"></div>
+        </div>
+
+        <div class="nav-row">
+          <div class="nav-group">
+            <button class="btn-light" onclick="prevQuestion()">Câu trước</button>
+            <button onclick="nextQuestion()">Câu tiếp</button>
+          </div>
+          <div class="nav-group">
+            <button class="btn-light" onclick="goBackHome()">Thoát về phòng luyện</button>
+            <button class="btn-yellow" onclick="submitPractice()">Nộp bài</button>
+          </div>
+        </div>
+
+        <!-- In-page Result Presentation Card -->
+        <div class="result-box" id="resultBox"></div>
+      </div>
+
+      <!-- Sidebar Status -->
+      <div class="side-card">
+        <div class="stat">
+          <h2>Tiến độ</h2>
+          <div class="stat-row">
+            <span>Đã làm:</span>
+            <b><span id="doneCount">0</span> / <span id="totalCount">0</span> câu</b>
+          </div>
+          <div class="stat-row">
+            <span>Đúng:</span>
+            <b style="color: var(--success);" id="rightCount">0</b>
+          </div>
+          <div class="stat-row">
+            <span>Sai:</span>
+            <b style="color: var(--danger);" id="wrongCount">0</b>
+          </div>
+        </div>
+
+        <h2>Bảng câu hỏi</h2>
+        <div class="question-grid" id="questionGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-name">OwlStudy</p>
+        <p class="footer-subtitle">Tài liệu cho sinh viên HaUI</p>
+      </div>
+      <p class="footer-copy">Phòng luyện trắc nghiệm 4 đáp án.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="data-service.js"></script>
+
+  <script>
+    // ---------------- DATA PULLING & COMPATIBILITY FILTERS ----------------
+    const dataService = window.OwlStudyData;
+    let savedQuestions = [];
+    let savedExams = [];
+    let savedSubjects = [];
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterSubjectId = urlParams.get("subjectId");
+    const filterExamId = urlParams.get("examId");
+
+    let questionBank = [];
+
+    let selectedQuestions = [];
+    let currentIndex = 0;
+    let answers = {};
+
+    function showDataError(error) {
+      console.error(error);
+      alert(error.message || "Khong the ket noi Supabase.");
+    }
+
+    function isPublicItem(item) {
+      return String(item.status || "").toLowerCase() === "public";
+    }
+
+    function activeSubjectIds(subjects) {
+      return new Set(subjects.filter((subject) => subject.status === "active").map((subject) => subject.id));
+    }
+
+    function normalizePracticeQuestion(q) {
+      return {
+        id: q.id,
+        subjectId: q.subjectId,
+        subject: q.subject,
+        examId: q.examId,
+        examName: q.examName,
+        question: q.question || "",
+        A: q.A || "",
+        B: q.B || "",
+        C: q.C || "",
+        D: q.D || "",
+        correct: String(q.correct || "A").trim().toUpperCase()
+      };
+    }
+
+    async function loadPracticeData() {
+      try {
+        const [subjectRows, examRows] = await Promise.all([
+          dataService.getSubjects({ status: "active" }),
+          dataService.getExams({ status: "public" })
+        ]);
+        const allowedSubjects = activeSubjectIds(subjectRows);
+        savedSubjects = subjectRows;
+        savedExams = examRows.filter((exam) => allowedSubjects.has(exam.subjectId));
+
+        if (filterExamId) {
+          const exam = savedExams.find((item) => item.id === filterExamId);
+          savedQuestions = exam
+            ? await dataService.getQuestionsByExam(filterExamId, { status: "active" })
+            : [];
+        } else {
+          const relevantExams = filterSubjectId
+            ? savedExams.filter((exam) => exam.subjectId === filterSubjectId)
+            : savedExams;
+          const groups = await Promise.all(
+            relevantExams.map((exam) => dataService.getQuestionsByExam(exam.id, { status: "active" }))
+          );
+          savedQuestions = groups.flat();
+        }
+
+        const allowedExamIds = new Set(savedExams.map((exam) => exam.id));
+        questionBank = savedQuestions
+          .filter((q) => allowedExamIds.has(q.examId) && (!filterSubjectId || q.subjectId === filterSubjectId))
+          .map(normalizePracticeQuestion);
+      } catch (error) {
+        savedQuestions = [];
+        savedExams = [];
+        savedSubjects = [];
+        questionBank = [];
+        showDataError(error);
+      }
+    }
+
+    function updateRangeNumber() {
+      document.getElementById("rangeNumber").innerText = document.getElementById("customCount").value;
+    }
+
+    function startFullMode() {
+      if (questionBank.length === 0) return;
+      selectedQuestions = [...questionBank];
+      startPractice("Làm toàn bộ " + questionBank.length + " câu");
+    }
+
+    function startCustomMode() {
+      if (questionBank.length === 0) return;
+      const count = Number(document.getElementById("customCount").value);
+      selectedQuestions = pickSmartQuestions(count);
+      startPractice("Luyện tùy ý " + count + " câu");
+    }
+
+    function startPractice(title) {
+      currentIndex = 0;
+      answers = {};
+      if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(error => console.warn("Fullscreen is not available", error));
+      }
+
+      document.getElementById("modeScreen").style.display = "none";
+      document.getElementById("practiceLayout").style.display = "grid";
+      document.getElementById("roomTitle").innerText = title;
+      document.getElementById("totalCount").innerText = selectedQuestions.length;
+      document.getElementById("resultBox").style.display = "none";
+
+      renderQuestion();
+      renderQuestionGrid();
+      updateStats();
+    }
+
+    function pickSmartQuestions(count) {
+      const stats = getStats();
+
+      const sorted = [...questionBank].sort((q1, q2) => {
+        const s1 = stats[q1.id] || { correct: 0, wrong: 0 };
+        const s2 = stats[q2.id] || { correct: 0, wrong: 0 };
+
+        const score1 = s1.wrong * 3 - s1.correct;
+        const score2 = s2.wrong * 3 - s2.correct;
+
+        return score2 - score1;
+      });
+
+      const safeCount = Math.min(count, sorted.length);
+      const weakPart = sorted.slice(0, Math.ceil(safeCount * 0.7));
+      const rest = sorted.slice(Math.ceil(safeCount * 0.7));
+      const randomPart = shuffle(rest).slice(0, safeCount - weakPart.length);
+
+      return shuffle([...weakPart, ...randomPart]).slice(0, safeCount);
+    }
+
+    function renderQuestion() {
+      const q = selectedQuestions[currentIndex];
+      if (!q) return;
+
+      document.getElementById("questionNumber").innerText = "Câu " + (currentIndex + 1) + " / " + selectedQuestions.length;
+      document.getElementById("questionText").innerText = q.question;
+
+      const options = ["A", "B", "C", "D"];
+      const studentAnswer = answers[q.id];
+
+      document.getElementById("optionsBox").innerHTML = options.map(letter => {
+        let className = "option";
+
+        if (studentAnswer) {
+          if (letter === q.correct) {
+            className += " correct";
+          }
+
+          if (letter === studentAnswer && studentAnswer !== q.correct) {
+            className += " wrong";
+          }
+        }
+
+        return `
+          <div class="${className}" onclick="chooseAnswer('${letter}')">
+            <div class="letter">${letter}</div>
+            <div>${escapeHtml(q[letter])}</div>
+          </div>
+        `;
+      }).join("");
+
+      renderQuestionGrid();
+      updateStats();
+    }
+
+    function chooseAnswer(letter) {
+      const q = selectedQuestions[currentIndex];
+      if (!q) return;
+
+      if (answers[q.id]) {
+        return;
+      }
+
+      answers[q.id] = letter;
+
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentIndex < selectedQuestions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+      }
+    }
+
+    function goToQuestion(index) {
+      currentIndex = index;
+      renderQuestion();
+    }
+
+    function renderQuestionGrid() {
+      const box = document.getElementById("questionGrid");
+
+      box.innerHTML = selectedQuestions.map((q, index) => {
+        const studentAnswer = answers[q.id];
+
+        let className = "q-btn";
+
+        if (index === currentIndex) {
+          className += " current";
+        }
+
+        if (studentAnswer) {
+          if (studentAnswer === q.correct) {
+            className += " done-correct";
+          } else {
+            className += " done-wrong";
+          }
+        }
+
+        return `<button class="${className}" onclick="goToQuestion(${index})">${index + 1}</button>`;
+      }).join("");
+    }
+
+    function updateStats() {
+      let done = 0;
+      let right = 0;
+      let wrong = 0;
+
+      selectedQuestions.forEach(q => {
+        if (answers[q.id]) {
+          done++;
+
+          if (answers[q.id] === q.correct) {
+            right++;
+          } else {
+            wrong++;
+          }
+        }
+      });
+
+      document.getElementById("doneCount").innerText = done;
+      document.getElementById("rightCount").innerText = right;
+      document.getElementById("wrongCount").innerText = wrong;
+
+      const percent = selectedQuestions.length === 0 ? 0 : (done / selectedQuestions.length) * 100;
+      document.getElementById("progressFill").style.width = percent + "%";
+    }
+
+    async function submitPractice() {
+      if (selectedQuestions.length === 0) return;
+      
+      let right = 0;
+      let wrong = 0;
+
+      selectedQuestions.forEach(q => {
+        const studentAnswer = answers[q.id];
+
+        if (studentAnswer === q.correct) {
+          right++;
+        } else {
+          wrong++;
+        }
+      });
+
+      const score = Math.round((right / selectedQuestions.length) * 100);
+
+      saveStats();
+      try {
+        const studentInfo = JSON.parse(localStorage.getItem("studentInfo") || "{}");
+        const examObj = savedExams.find((exam) => exam.id === filterExamId) || null;
+        await dataService.saveAttempt({
+          studentName: studentInfo.name || studentInfo.username || "Học sinh",
+          studentPhone: studentInfo.phone || studentInfo.phoneNumber || "",
+          examId: filterExamId || null,
+          subjectId: (examObj && examObj.subjectId) || filterSubjectId || (selectedQuestions[0] && selectedQuestions[0].subjectId) || null,
+          score,
+          totalQuestions: selectedQuestions.length,
+          correctCount: right,
+          wrongCount: wrong,
+          answersJson: {
+            answers: selectedQuestions.map((q) => ({
+              question_id: q.id,
+              selected: answers[q.id] || null,
+              correct: q.correct
+            }))
+          }
+        });
+      } catch (error) {
+        showDataError(error);
+        return;
+      }
+
+      const resultBox = document.getElementById("resultBox");
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `
+        <h3>Kết quả làm bài</h3>
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-value">${right}</span>
+            <span class="result-label">Câu đúng</span>
+          </div>
+          <div class="result-item">
+            <span class="result-value">${wrong}</span>
+            <span class="result-label">Sai/Chưa làm</span>
+          </div>
+          <div class="result-item">
+            <span class="result-value">${score}/100</span>
+            <span class="result-label">Điểm số</span>
+          </div>
+        </div>
+        <p class="result-note">Những câu sai sẽ được ưu tiên bốc lại ở lần luyện tùy ý sau.</p>
+      `;
+
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      alert("Đã nộp bài thành công! Điểm số của bạn: " + score + "/100");
+    }
+
+    function saveStats() {
+      return;
+    }
+
+    function getStats() {
+      return {};
+    }
+
+    function shuffle(array) {
+      return array
+        .map(item => ({ item, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(obj => obj.item);
+    }
+
+    function goBackHome() {
+      window.location.href = "student.html";
+    }
+
+    function escapeHtml(unsafe) {
+      if (!unsafe) return "";
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // ---------------- FULLSCREEN CONTROL ----------------
+    async function toggleFullscreen() {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        } else if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      } catch (err) {
+        console.warn("Fullscreen request rejected or not supported", err);
+      } finally {
+        updateFullscreenButton();
+      }
+    }
+
+    function updateFullscreenButton() {
+      const btn = document.getElementById("btnFullscreen");
+      if (!btn) return;
+      const active = Boolean(document.fullscreenElement);
+      document.body.classList.toggle("is-fullscreen", active);
+      const label = active ? "Thoát toàn màn hình" : "Mở toàn màn hình";
+      btn.title = label;
+      btn.setAttribute("aria-label", label);
+    }
+
+    document.addEventListener("fullscreenchange", updateFullscreenButton);
+
+    // ---------------- INITIALIZE PAGE ----------------
+    async function initPracticePage() {
+      await loadPracticeData();
+      const emptyMessage = document.getElementById("emptyMessage");
+      const modeGrid = document.getElementById("modeScreenGrid");
+      const fullModeTitle = document.getElementById("fullModeTitle");
+      const fullModeBtnText = document.getElementById("fullModeBtnText");
+      const rangeInput = document.getElementById("customCount");
+      
+      if (questionBank.length === 0) {
+        emptyMessage.style.display = "block";
+        modeGrid.style.display = "none";
+        return;
+      }
+      
+      emptyMessage.style.display = "none";
+      modeGrid.style.display = "grid";
+      
+      if (filterExamId) {
+        const examObj = savedExams.find(e => e.id === filterExamId);
+        if (examObj) {
+          document.querySelector(".mode-screen h1").innerText = `Phòng luyện: ${examObj.title || examObj.name}`;
+          document.querySelector(".mode-screen p").innerText = `Đề thi môn: ${examObj.subject || 'Chưa rõ'}. Gồm ${questionBank.length} câu hỏi.`;
+        }
+      } else if (filterSubjectId) {
+        const subjObj = savedSubjects.find(s => s.id === filterSubjectId);
+        if (subjObj) {
+          document.querySelector(".mode-screen h1").innerText = `Luyện tập môn: ${subjObj.name}`;
+          document.querySelector(".mode-screen p").innerText = `Tổng số câu hỏi hiện có: ${questionBank.length} câu.`;
+        }
+      }
+
+      fullModeTitle.innerText = "Làm toàn bộ " + questionBank.length + " câu";
+      fullModeBtnText.innerText = "Bắt đầu " + questionBank.length + " câu";
+      
+      rangeInput.max = questionBank.length;
+      rangeInput.value = Math.min(20, questionBank.length);
+      updateRangeNumber();
+    }
+
+    initPracticePage();
+  </script>
+</body>
+</html>

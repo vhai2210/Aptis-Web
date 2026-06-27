@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aptis và TSA - xem tài liệu Google Drive cho sinh viên.">
+    <meta name="theme-color" content="#E05A5A">
+    <link rel="icon" href="assets/logo.png?v=red">
+    <title>Aptis và TSA - Xem tài liệu</title>
+    <style>
+      :root {
+        --red: #E05A5A;
+        --red-dark: #C94B4B;
+        --red-deep: #B03030;
+        --yellow: #F5C6C6;
+        --text: #132237;
+        --muted: #66768A;
+        --line: rgba(201,75,75,0.14);
+        --soft: #FFF5F5;
+        --white: #FFFFFF;
+        --shadow: 0 12px 36px rgba(224,90,90,0.10);
+        --paper: #FAF5F5;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        min-height: 100vh;
+        background: var(--paper);
+        color: var(--text);
+        font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      input, textarea, select { user-select: text; -webkit-user-select: text; }
+      img { -webkit-user-drag: none; }
+      a { color: inherit; text-decoration: none; }
+
+      /* ======= TOPBAR ======= */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px clamp(16px, 3vw, 40px);
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 2px 12px rgba(224,90,90,0.06);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand img {
+        width: 46px;
+        height: 46px;
+        object-fit: contain;
+      }
+
+      .brand-name {
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--red);
+        display: block;
+        line-height: 1;
+      }
+
+      .brand-sub {
+        display: block;
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+        margin-top: 3px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--red);
+        color: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 140ms ease, background 140ms ease, box-shadow 140ms ease;
+        white-space: nowrap;
+      }
+
+      .btn:hover { transform: translateY(-1px); background: var(--red-dark); box-shadow: 0 8px 20px rgba(224,90,90,0.22); }
+      .btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+      .btn-outline {
+        background: transparent;
+        border: 1.5px solid var(--line);
+        color: var(--text);
+      }
+
+      .btn-outline:hover { background: var(--soft); border-color: rgba(224,90,90,0.3); box-shadow: none; }
+
+      /* ======= INFO BAR ======= */
+      .info-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px clamp(16px, 3vw, 40px);
+        background: var(--soft);
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+      }
+
+      .info-bar-left { display: flex; flex-direction: column; gap: 2px; }
+
+      .info-eyebrow {
+        font-size: 11px;
+        font-weight: 900;
+        color: var(--red);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .info-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text);
+      }
+
+      .info-meta {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      /* ======= VIEWER ======= */
+      .viewer-shell {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(460px, 860px) minmax(280px, 360px);
+        justify-content: center;
+        align-items: start;
+        gap: 18px;
+        padding: 16px clamp(16px, 3vw, 40px) 22px;
+      }
+
+      .viewer-stage {
+        min-width: 0;
+        display: flex;
+        justify-content: center;
+      }
+
+      .viewer-wrap {
+        --doc-scale: 0.98;
+        --drive-overscan-x: 180px;
+        position: relative;
+        width: 100%;
+        height: clamp(480px, calc(100vh - 170px), 860px);
+        min-height: 0;
+        overflow: hidden;
+        border-radius: 10px;
+        background: #F7F1F1;
+        box-shadow: 0 18px 48px rgba(19,34,55,0.18);
+      }
+
+      .viewer-frame {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: calc(100% + var(--drive-overscan-x));
+        height: 100%;
+        border: 0;
+        background: #F7F1F1;
+        display: block;
+        transform: translateX(-50%) scale(var(--doc-scale));
+        transform-origin: top center;
+      }
+
+      .viewer-side {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.96);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        position: sticky;
+        top: 88px;
+      }
+
+      .side-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--red);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .side-title {
+        font-size: 22px;
+        line-height: 1.2;
+        font-weight: 900;
+        color: var(--text);
+        margin-bottom: 10px;
+      }
+
+      .side-desc {
+        font-size: 14px;
+        line-height: 1.65;
+        color: #475569;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+
+      .side-list {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .side-item {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+
+      .side-item span {
+        display: block;
+        color: var(--red);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+
+      .side-item strong {
+        display: block;
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+
+      .side-actions {
+        display: none;
+        gap: 8px;
+      }
+
+      /* ======= PLACEHOLDER ======= */
+      .placeholder {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 16px;
+        min-height: 100%;
+        background: var(--soft);
+        text-align: center;
+        padding: 40px;
+      }
+
+      .placeholder-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FFE0E0, #FFF5F5);
+        display: grid;
+        place-items: center;
+        margin-bottom: 8px;
+        border: 2px solid rgba(224,90,90,0.18);
+      }
+
+      .placeholder-icon svg {
+        width: 40px;
+        height: 40px;
+        stroke: var(--red);
+      }
+
+      .placeholder-title {
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--text);
+      }
+
+      .placeholder-desc {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.7;
+        max-width: 480px;
+      }
+
+      /* ======= LOADING ======= */
+      .loading-bar {
+        width: 100%;
+        height: 3px;
+        background: var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .loading-bar::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -60%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, var(--red), transparent);
+        animation: slide 1.4s infinite;
+      }
+
+      @keyframes slide {
+        to { left: 110%; }
+      }
+
+      @media (max-width: 600px) {
+        .topbar { flex-direction: column; align-items: flex-start; }
+        .info-bar { flex-direction: column; align-items: flex-start; }
+        .top-actions { width: 100%; }
+        .btn { flex: 1; justify-content: center; }
+        .viewer-shell {
+          grid-template-columns: 1fr;
+          padding: 12px;
+        }
+        .viewer-wrap {
+          --doc-scale: 0.99;
+          --drive-overscan-x: 90px;
+          height: 62vh;
+          min-height: 430px;
+        }
+        .viewer-side {
+          position: static;
+        }
+        .side-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (min-width: 601px) and (max-width: 980px) {
+        .viewer-shell {
+          grid-template-columns: 1fr;
+        }
+        .viewer-wrap {
+          --doc-scale: 0.98;
+          --drive-overscan-x: 140px;
+        }
+        .viewer-side {
+          position: static;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <a class="brand" href="student.html#materials" id="back-link">
+        <img src="assets/logo.png?v=red" alt="Aptis và TSA">
+        <span>
+          <span class="brand-name">Aptis và TSA</span>
+          <span class="brand-sub">Tài liệu cho sinh viên</span>
+        </span>
+      </a>
+      <nav class="top-actions">
+        <a class="btn btn-outline" href="student.html#materials" id="btn-back">← Quay lại</a>
+        <a class="btn btn-outline" id="btn-download" href="#" target="_blank" rel="noopener" style="display:none;">Tải xuống</a>
+        <a class="btn" id="btn-open-drive" href="#" target="_blank" rel="noopener">Mở trên Google Drive</a>
+      </nav>
+    </header>
+
+    <!-- LOADING BAR -->
+    <div class="loading-bar" id="loading-bar"></div>
+
+    <!-- INFO BAR -->
+    <div class="info-bar" id="info-bar" style="display:none;">
+      <div class="info-bar-left">
+        <span class="info-eyebrow" id="info-eyebrow">TÀI LIỆU</span>
+        <span class="info-title" id="info-title">Đang tải...</span>
+        <span class="info-meta" id="info-meta"></span>
+      </div>
+      <div class="top-actions" style="gap:8px;">
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <main class="viewer-shell">
+      <section class="viewer-stage" aria-label="Khung xem tài liệu">
+        <div class="viewer-wrap" id="viewer-wrap">
+          <div class="placeholder" id="placeholder">
+            <div class="placeholder-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <p class="placeholder-title" id="placeholder-title">Đang tải tài liệu...</p>
+            <p class="placeholder-desc" id="placeholder-desc">Vui lòng chờ trong giây lát.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="viewer-side" id="viewer-side" aria-label="Mô tả tài liệu">
+        <span class="side-eyebrow" id="side-eyebrow">Tài liệu</span>
+        <h1 class="side-title" id="side-title">Đang tải tài liệu</h1>
+        <p class="side-desc" id="side-desc">Thông tin mô tả sẽ hiển thị sau khi tài liệu được tải.</p>
+        <div class="side-list">
+          <div class="side-item">
+            <span>Chủ đề</span>
+            <strong id="side-topic">Đang cập nhật</strong>
+          </div>
+          <div class="side-item">
+            <span>Môn / kỹ năng</span>
+            <strong id="side-subject">Đang cập nhật</strong>
+          </div>
+          <div class="side-item">
+            <span>Loại tài liệu</span>
+            <strong id="side-type">Đang cập nhật</strong>
+          </div>
+          <div class="side-item">
+            <span>Người đăng</span>
+            <strong id="side-uploader">Aptis và TSA</strong>
+          </div>
+          <div class="side-item">
+            <span>Ngày đăng</span>
+            <strong id="side-date">Đang cập nhật</strong>
+          </div>
+        </div>
+        <div class="side-actions">
+          <a class="btn btn-outline" id="side-download" href="#" target="_blank" rel="noopener" style="display:none;">Tải xuống</a>
+          <a class="btn" id="side-open-drive" href="#" target="_blank" rel="noopener">Mở trên Google Drive</a>
+        </div>
+      </aside>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="data-service.js"></script>
+
+    <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const directUrl = params.get("url");   // Club link: direct Google Drive URL
+      const clubName  = params.get("club");  // Club name
+      const subject   = params.get("subject"); // Subject / skill
+      const materialId = params.get("id");   // Regular material ID from DB
+      const $ = id => document.getElementById(id);
+
+      function driveFileId(url) {
+        if (!url || url === "#") return "";
+        const m1 = url.match(/\/file\/d\/([^/?&#]+)/);
+        if (m1) return m1[1];
+        const m2 = url.match(/[?&]id=([^&#]+)/);
+        if (m2) return m2[1];
+        const m3 = url.match(/\/folders\/([^/?&#]+)/);
+        if (m3) return m3[1]; // folder — can't preview but can open
+        return "";
+      }
+
+      function drivePreviewUrl(url) {
+        if (!url || url === "#") return "";
+        if (url.includes("/preview")) return url;
+        const id = driveFileId(url);
+        if (!id) return "";
+        // Check if it looks like a folder
+        if (url.includes("/folders/")) return ""; // folders can't be previewed inline
+        return "https://drive.google.com/file/d/" + id + "/preview";
+      }
+
+      function driveDownloadUrl(url) {
+        const id = driveFileId(url);
+        if (id && !url.includes("/folders/")) return "https://drive.google.com/uc?export=download&id=" + id;
+        return "";
+      }
+
+      function hideLoading() {
+        const lb = $("loading-bar");
+        if (lb) lb.style.display = "none";
+      }
+
+      function showError(title, desc) {
+        hideLoading();
+        $("placeholder-title").textContent = title;
+        $("placeholder-desc").textContent = desc;
+        $("side-title").textContent = title;
+        $("side-desc").textContent = desc;
+        $("side-topic").textContent = "Không có tài liệu";
+        $("side-subject").textContent = "Chưa xác định";
+        $("side-type").textContent = "Thông báo";
+        $("side-uploader").textContent = "Aptis và TSA";
+        $("side-date").textContent = "N/A";
+        // Change icon to error
+        $("placeholder").querySelector("svg").innerHTML = `
+          <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+        `;
+      }
+
+      function detailText(value, fallback = "Đang cập nhật") {
+        return value && String(value).trim() ? String(value).trim() : fallback;
+      }
+
+      function defaultDescription(title, subjectName, typeName) {
+        const topic = detailText(title, "tài liệu");
+        const subjectLabel = detailText(subjectName, "Aptis và TSA");
+        const typeLabel = detailText(typeName, "tài liệu học tập");
+        return `${typeLabel} thuộc ${subjectLabel}, tập trung vào chủ đề ${topic}.`;
+      }
+
+      function updateSidePanel(details) {
+        const info = details || {};
+        const title = detailText(info.title, "Tài liệu");
+        const subjectName = detailText(info.subject, "Aptis và TSA");
+        const typeName = detailText(info.type, "Tài liệu");
+        $("side-eyebrow").textContent = detailText(info.eyebrow, typeName).toUpperCase();
+        $("side-title").textContent = title;
+        $("side-desc").textContent = detailText(info.description, defaultDescription(title, subjectName, typeName));
+        $("side-topic").textContent = detailText(info.topic, title);
+        $("side-subject").textContent = subjectName;
+        $("side-type").textContent = typeName;
+        $("side-uploader").textContent = detailText(info.uploader, "Aptis và TSA");
+        $("side-date").textContent = detailText(info.date, "N/A");
+      }
+
+      function syncActionLinks(driveUrl, downloadUrl) {
+        $("btn-open-drive").href = driveUrl;
+        $("side-open-drive").href = driveUrl;
+        const downloadButtons = [$("btn-download"), $("side-download")].filter(Boolean);
+        downloadButtons.forEach((button) => {
+          if (downloadUrl) {
+            button.href = downloadUrl;
+            button.style.display = "";
+          } else {
+            button.removeAttribute("href");
+            button.style.display = "none";
+          }
+        });
+      }
+
+      function renderViewer(driveUrl, title, eyebrow, meta, details = {}) {
+        // Update info bar
+        $("info-eyebrow").textContent = eyebrow || "TÀI LIỆU";
+        $("info-title").textContent = title || "Tài liệu";
+        $("info-meta").textContent = meta || "";
+        $("info-bar").style.display = "flex";
+
+        const dl = driveDownloadUrl(driveUrl);
+        syncActionLinks(driveUrl, dl);
+        updateSidePanel({
+          title,
+          eyebrow,
+          topic: title,
+          ...details
+        });
+
+        // Hide placeholder
+        $("placeholder").style.display = "none";
+        hideLoading();
+
+        const previewUrl = drivePreviewUrl(driveUrl);
+        $("viewer-wrap").querySelectorAll("iframe").forEach((frame) => frame.remove());
+
+        if (previewUrl) {
+          // Create full-height iframe
+          const iframe = document.createElement("iframe");
+          iframe.src = previewUrl;
+          iframe.title = title || "Tài liệu";
+          iframe.allow = "autoplay";
+          iframe.className = "viewer-frame";
+          iframe.setAttribute("loading", "eager");
+          $("viewer-wrap").appendChild(iframe);
+        } else {
+          // No inline preview (e.g. folder link) — show open button message
+          $("placeholder").style.display = "flex";
+          $("placeholder-title").textContent = "Không thể xem trực tiếp";
+          $("placeholder-desc").textContent = "Tài liệu này là thư mục Google Drive. Bấm \"Mở trên Google Drive\" để xem toàn bộ nội dung.";
+          $("placeholder").querySelector("svg").innerHTML = `
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          `;
+        }
+      }
+
+      async function init() {
+        // ── CASE 1: Direct URL from club click ──
+        if (directUrl) {
+          const title = clubName ? clubName : (subject ? subject + " tổng hợp" : "Tài liệu Writing Club");
+          const eyebrow = subject ? subject.toUpperCase() + " CLUB" : "WRITING CLUB";
+          const meta = subject ? "Luyện " + subject + " tổng hợp theo Club" : "";
+          renderViewer(directUrl, title, eyebrow, meta, {
+            subject: subject || "Writing",
+            type: "Tài liệu Club",
+            topic: clubName || title,
+            uploader: "Aptis và TSA",
+            date: "N/A",
+            description: "Bộ đề luyện Writing theo Club, tập trung vào chủ đề " + (clubName || title) + "."
+          });
+          return;
+        }
+
+        // ── CASE 2: Material ID from DB ──
+        if (materialId) {
+          try {
+            const [subjectRows, item] = await Promise.all([
+              window.OwlStudyData.getSubjects({ status: "active" }),
+              window.OwlStudyData.getMaterialById(materialId)
+            ]);
+            const activeSubjectIds = new Set(subjectRows.map(s => s.id));
+            const isPublicMaterial = String((item && item.status) || "").toLowerCase() === "public";
+            const isActiveSubject = item && activeSubjectIds.has(item.subjectId);
+
+            if (!item || !isPublicMaterial || !isActiveSubject) {
+              showError("Không tìm thấy tài liệu", "Tài liệu này không tồn tại hoặc chưa được công khai. Quay lại kho tài liệu để chọn tài liệu khác.");
+              return;
+            }
+
+            const link = item.link || item.url || item.drive || item.driveUrl || "";
+            const subjectObj = subjectRows.find(s => String(s.id) === String(item.subjectId));
+            const subject = item.subject || (subjectObj && (subjectObj.name || subjectObj.title)) || "Tài liệu";
+            const type = item.type || "Tài liệu";
+            const uploader = item.uploader || "Giáo viên";
+            const date = item.date || "";
+            const description = item.description || (subjectObj && subjectObj.description) || defaultDescription(item.title, subject, type);
+
+            renderViewer(link, item.title, type.toUpperCase(), subject + (uploader ? " · " + uploader : "") + (date ? " · " + date : ""), {
+              subject,
+              type,
+              topic: item.title,
+              uploader,
+              date: date || "N/A",
+              description
+            });
+          } catch (err) {
+            showError("Lỗi tải tài liệu", "Không thể kết nối dữ liệu. Vui lòng thử lại sau.");
+            console.error(err);
+          }
+          return;
+        }
+
+        // ── CASE 3: No params ──
+        showError("Không có tài liệu", "Vui lòng truy cập qua kho tài liệu hoặc bấm vào một club để xem.");
+      }
+
+      init();
+    })();
+    </script>
+  </body>
+</html>
